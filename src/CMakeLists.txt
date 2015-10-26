@@ -10,16 +10,16 @@ include_directories(. include include/util include/hoard include/superblocks Hea
 
 if (UNIX)
   include_directories(/usr/include/nptl)
-  add_definitions(-Wall -Wextra -Wshadow -Wconversion -std=c++11)
-  add_definitions(-std=c++11 -ffast-math -g -fno-builtin-malloc -finline-limit=20000 -finline-functions -DNDEBUG  -D_REENTRANT=1 -Bsymbolic -ldl -lpthread)  #-pipe
+  add_definitions(-Wall -Wextra -Wshadow -Wconversion -ffast-math -g -fno-builtin-malloc -finline-limit=20000 -finline-functions -Bsymbolic -Wl,--no-as-needed -ldl)   #-pipe
+  add_definitions(-DNDEBUG -D_REENTRANT=1)
   if (bitness EQUAL 4)
     add_definitions(-malign-double)
   else ()
     add_definitions(-fPIC)
   endif ()
 
-  message(files ${GNU_SRC})
   add_library(libhoard SHARED ${GNU_SRC})
+  target_link_libraries(libhoard dl)
 elseif (MSVC)
 
   # WIN_INCLUDES = /I. /Iinclude /Iinclude/util /Iinclude/hoard /Iinclude/superblocks /IHeap-Layers
@@ -33,5 +33,7 @@ elseif (MSVC)
   add_library(libhoard SHARED source/libhoard.cpp Heap-Layers/wrappers/winwrapper.cpp source/wintls.cpp)
   # cl $(WIN_INCLUDES) $(WIN_DEFINES) $(WIN_FLAGS) /c "source\uselibhoard.cpp"
   add_executable(uselibhoard source/uselibhoard.cpp)
-
 endif()
+
+target_link_libraries(libhoard ${CMAKE_THREAD_LIBS_INIT})
+set_property(TARGET libhoard PROPERTY CXX_STANDARD 11)
