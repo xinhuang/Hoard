@@ -32,7 +32,8 @@ elseif (MSVC)
   # cl $(WIN_INCLUDES) $(WIN_DEFINES) $(WIN_FLAGS) "source\libhoard.cpp" "Heap-Layers\wrappers\winwrapper.cpp" "source\wintls.cpp" /GL /link /DLL /subsystem:console /OUT:libhoard.dll
   add_library(libhoard SHARED source/libhoard.cpp Heap-Layers/wrappers/winwrapper.cpp source/wintls.cpp)
   # cl $(WIN_INCLUDES) $(WIN_DEFINES) $(WIN_FLAGS) /c "source\uselibhoard.cpp"
-  add_executable(uselibhoard source/uselibhoard.cpp)
+  add_library(uselibhoard STATIC source/uselibhoard.cpp)
+  target_link_libraries(uselibhoard libhoard)
 endif()
 
 target_link_libraries(libhoard ${CMAKE_THREAD_LIBS_INIT})
