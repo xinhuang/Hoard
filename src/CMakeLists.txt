@@ -37,4 +37,3 @@ elseif (MSVC)
 endif()
 
 target_link_libraries(libhoard ${CMAKE_THREAD_LIBS_INIT})
-set_property(TARGET libhoard PROPERTY CXX_STANDARD 11)
