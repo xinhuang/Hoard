@@ -20,6 +20,7 @@ if (UNIX)
 
   add_library(libhoard SHARED ${GNU_SRC})
   target_link_libraries(libhoard dl)
+
 elseif (MSVC)
 
   # WIN_INCLUDES = /I. /Iinclude /Iinclude/util /Iinclude/hoard /Iinclude/superblocks /IHeap-Layers
@@ -37,3 +38,14 @@ elseif (MSVC)
 endif()
 
 target_link_libraries(libhoard ${CMAKE_THREAD_LIBS_INIT})
+
+if (NOT "${PERFLIB_ROOT}" STREQUAL "")
+  message(STATUS "Will link to perflib at ${PERFLIB_ROOT}")
+  set(PERFLIB_INCLUDE_DIR ${PERFLIB_ROOT}/perf/include)
+  set(PERFLIB_LIBRARY_DIR ${PERFLIB_ROOT}/build/lib)
+  set(PERFLIB_LIBS ${PERFLIB_LIBRARY_DIR}/libperfLib.so)
+  include_directories(${PERFLIB_INCLUDE_DIR})
+  message("link directories: ${PERFLIB_LIBRARY_DIR}")
+  message("perflib: ${PERFLIB_LIBS}")
+  target_link_libraries(libhoard ${PERFLIB_LIBS})
+endif ()

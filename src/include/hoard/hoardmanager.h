@@ -6,19 +6,19 @@
   www.hoard.org
 
   Author: Emery Berger, http://www.cs.umass.edu/~emery
- 
+
   Copyright (c) 1998-2012 Emery Berger
-  
+
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
-  
+
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-  
+
   You should have received a copy of the GNU General Public License
   along with this program; if not, write to the Free Software
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
@@ -52,6 +52,13 @@ using namespace HL;
  *
  **/
 
+#include <perf/perf.h>
+#include <iostream>
+
+extern perf::Module* perfHoardManager;
+extern perf::Task* perfMalloc;
+extern perf::Task* perfFree;
+
 namespace Hoard {
 
   template <class SourceHeap,
@@ -70,7 +77,9 @@ namespace Hoard {
       : _magic (MAGIC_NUMBER)
     {}
 
-    virtual ~HoardManager() {}
+    virtual ~HoardManager() {
+      perf::report(std::cout);
+    }
 
     typedef SuperblockType_ SuperblockType;
 
@@ -79,6 +88,7 @@ namespace Hoard {
 
     MALLOC_FUNCTION INLINE void * malloc (size_t sz)
     {
+      perf::start(perfHoardManager, perfMalloc);
       Check<HoardManager, sanityCheck> check (this);
       auto binIndex = binType::getSizeClass(sz);
       auto realSize = binType::getClassSize (binIndex);
@@ -91,6 +101,7 @@ namespace Hoard {
       }
       assert (SuperHeap::getSize(ptr) >= sz);
       assert ((size_t) ptr % Alignment == 0);
+      perf::stop(perfHoardManager);
       return ptr;
     }
 
@@ -127,7 +138,7 @@ namespace Hoard {
       auto * s = _otherBins(binIndex).get();
       if (s) {
 	assert (s->isValidSuperblock());
-      
+
 	// Update the statistics, removing objects in use and allocated for s.
 	decStatsSuperblock (s, binIndex);
 	s->setOwner (dest);
@@ -142,7 +153,7 @@ namespace Hoard {
 
       // Get the corresponding superblock.
       SuperblockType * s = SuperHeap::getSuperblock (ptr);
- 
+
       assert (s->getOwner() == this);
 
       // Find out which bin it belongs to.
@@ -213,11 +224,11 @@ namespace Hoard {
       // We've crossed the threshold.
       // Remove a superblock and give it to the 'parent heap.'
       Check<HoardManager, sanityCheck> check (this);
-    
+
       //	printf ("HoardManager: this = %x, getting a superblock\n", this);
-    
+
       SuperblockType * sb = _otherBins(binIndex).get ();
-    
+
       // We should always get one.
       assert (sb);
       if (sb) {
